@@ -26,6 +26,9 @@ jobs:
       - name: Regenerate missing platform scaffolding
         run: flutter create --project-name travel_buddy --org com.khaledakidi --platforms=android .
 
+      - name: Remove generated template test (refers to MyApp, not our TravelBuddyApp)
+        run: rm -f test/widget_test.dart
+
       - name: Install dependencies
         run: flutter pub get
 
