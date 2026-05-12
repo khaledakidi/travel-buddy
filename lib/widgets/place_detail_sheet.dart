@@ -208,7 +208,18 @@ class PlaceDetailSheet extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _share(place),
+                        onPressed: () async {
+                          await _share(place);
+                          await state.recordShare();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('📤 Shared! +5 XP'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
                         icon: const Icon(Icons.share),
                         label: const Text('Share'),
                         style: OutlinedButton.styleFrom(
@@ -260,14 +271,14 @@ class PlaceDetailSheet extends StatelessWidget {
     );
   }
 
-  void _share(Place p) {
+  Future<void> _share(Place p) async {
     final text =
         'Check out ${p.name}!\n'
         '📍 ${p.address}\n'
         '⭐ ${p.rating}/5\n'
         '${p.hasStudentDiscount ? "🎓 ${p.discountText}\n" : ""}'
         'https://maps.google.com/?q=${p.latitude},${p.longitude}';
-    Share.share(text, subject: 'Travel Buddy — ${p.name}');
+    await Share.share(text, subject: 'Travel Buddy — ${p.name}');
   }
 
   Future<void> _openDirections(Place p) async {

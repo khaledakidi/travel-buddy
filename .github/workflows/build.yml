@@ -35,6 +35,9 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 
+      - name: Run tests (T01-T16 acceptance criteria coverage)
+        run: flutter test
+
       - name: Build debug APK
         run: flutter build apk --debug
 

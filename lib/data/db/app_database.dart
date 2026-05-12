@@ -14,7 +14,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'travel_buddy.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE saved_places (
@@ -41,13 +41,18 @@ class AppDatabase {
             xp      INTEGER NOT NULL DEFAULT 0,
             level   INTEGER NOT NULL DEFAULT 1,
             streak  INTEGER NOT NULL DEFAULT 0,
+            shared  INTEGER NOT NULL DEFAULT 0,
             lastVisitDate TEXT
           )
         ''');
-        // Insert default stats row
         await db.insert('user_stats', {
-          'id': 1, 'xp': 0, 'level': 1, 'streak': 0, 'lastVisitDate': null
+          'id': 1, 'xp': 0, 'level': 1, 'streak': 0, 'shared': 0, 'lastVisitDate': null
         });
+      },
+      onUpgrade: (db, oldV, newV) async {
+        if (oldV < 2) {
+          await db.execute('ALTER TABLE user_stats ADD COLUMN shared INTEGER NOT NULL DEFAULT 0');
+        }
       },
     );
   }
@@ -95,6 +100,15 @@ class AppDatabase {
     );
     await _addXp(10); // +10 XP for visiting
     await _updateStreak();
+  }
+
+  /// UPDATE — increment share counter
+  static Future<void> incrementShare() async {
+    final db = await database;
+    final stats = await getUserStats();
+    final int newShared = ((stats['shared'] as int?) ?? 0) + 1;
+    await db.update('user_stats', {'shared': newShared}, where: 'id = 1');
+    await _addXp(5); // +5 XP per share
   }
 
   /// DELETE — unsave a place
@@ -152,13 +166,21 @@ class AppDatabase {
     final last  = stats['lastVisitDate'] as String?;
 
     int streak = stats['streak'] as int;
+    bool streakGrew = false;
     if (last == null) {
       streak = 1;
+      streakGrew = true;
     } else if (last == today) {
       // already visited today, no change
     } else {
       final diff = DateTime.now().difference(DateTime.parse(last)).inDays;
-      streak = diff == 1 ? streak + 1 : 1;
+      if (diff == 1) {
+        streak = streak + 1;
+        streakGrew = true;
+      } else {
+        streak = 1;
+        streakGrew = true;
+      }
     }
 
     await db.update(
@@ -166,5 +188,13 @@ class AppDatabase {
       {'streak': streak, 'lastVisitDate': today},
       where: 'id = 1',
     );
+
+    // Bonus XP for streak growth: +2 XP per consecutive day (capped)
+    if (streakGrew && streak > 1) {
+      await _addXp((streak * 2).clamp(2, 20));
+    }
   }
+
+  /// Pure XP → level function (exposed for unit tests)
+  static int calcLevel(int xp) => _calcLevel(xp);
 }

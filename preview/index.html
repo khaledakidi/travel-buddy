@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Buddy – App Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e2e8f0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; font-family: 'Segoe UI', Roboto, sans-serif; padding: 24px 16px; }
+  h1 { color: #1a2744; font-size: 22px; margin-bottom: 18px; letter-spacing: -0.3px; }
+  .phone-wrap { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  .phone { width: 375px; background: #f0f4f8; border-radius: 44px; box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 10px #1a1a1a, inset 0 0 0 2px #333; overflow: hidden; display: flex; flex-direction: column; height: 780px; position: relative; }
+  .phone-notch { height: 32px; background: white; display: flex; align-items: center; justify-content: center; }
+  .notch-bar { width: 120px; height: 28px; background: #1a1a1a; border-radius: 0 0 18px 18px; }
+  .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* ── NAV ── */
+  .bottom-nav { height: 68px; background: white; display: flex; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; color: #94a3b8; font-size: 10px; font-weight: 600; transition: color .15s; }
+  .nav-item.active { color: #1a2744; }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* ── HEADER ── */
+  .app-header { background: white; padding: 12px 16px 8px; display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 36px; height: 36px; background: #1a2744; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 13px; }
+  .header-text h2 { font-size: 17px; font-weight: 800; color: #1a2744; }
+  .header-text p { font-size: 11px; color: #64748b; }
+  .bell-btn { margin-left: auto; color: #64748b; font-size: 20px; cursor: pointer; }
+
+  /* ── SEARCH ── */
+  .search-bar { background: white; padding: 0 16px 10px; }
+  .search-input { background: #f1f5f9; border: none; border-radius: 12px; padding: 10px 14px 10px 38px; width: 100%; font-size: 13px; color: #475569; outline: none; position: relative; }
+  .search-wrap { position: relative; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; }
+
+  /* ── CHIPS ── */
+  .chips-row { background: white; height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip { white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; color: #64748b; background: white; transition: all .15s; }
+  .chip.active { background: #1a2744; color: white; border-color: transparent; }
+
+  /* ── VIEW TOGGLE ── */
+  .view-row { background: white; padding: 6px 16px 10px; display: flex; align-items: center; }
+  .place-count { font-size: 12px; color: #64748b; font-weight: 600; }
+  .seg-btn { margin-left: auto; display: flex; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  .seg-btn button { padding: 5px 10px; font-size: 11px; border: none; background: white; cursor: pointer; color: #64748b; font-weight: 600; transition: all .15s; }
+  .seg-btn button.active { background: #1a2744; color: white; }
+
+  /* ── MAP PLACEHOLDER ── */
+  .map-area { flex: 1; position: relative; overflow: hidden; }
+  .map-bg { width: 100%; height: 100%; background: #e8eff8; position: relative; overflow: hidden; }
+  .map-grid { position: absolute; inset: 0; background-image: linear-gradient(#c5d5ea 1px, transparent 1px), linear-gradient(90deg, #c5d5ea 1px, transparent 1px); background-size: 40px 40px; opacity: 0.5; }
+  .map-road-h { position: absolute; background: white; height: 8px; border-radius: 4px; }
+  .map-road-v { position: absolute; background: white; width: 8px; border-radius: 4px; }
+  .map-label { position: absolute; font-size: 8px; color: #64748b; font-weight: 600; white-space: nowrap; }
+  .map-marker { position: absolute; transform: translate(-50%, -100%); cursor: pointer; text-align: center; }
+  .marker-pin { width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  .marker-pin span { transform: rotate(45deg); font-size: 12px; display: block; }
+  .marker-label { font-size: 9px; color: #1a2744; font-weight: 700; margin-top: 2px; background: white; padding: 1px 4px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .my-location { position: absolute; width: 16px; height: 16px; background: #2563eb; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 6px rgba(37,99,235,.25); }
+
+  /* ── GRID ── */
+  .grid-area { flex: 1; overflow-y: auto; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; scrollbar-width: none; }
+  .grid-area::-webkit-scrollbar { display: none; }
+  .grid-card { background: white; border-radius: 14px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .card-img { height: 90px; display: flex; align-items: center; justify-content: center; font-size: 36px; position: relative; }
+  .card-badge { position: absolute; top: 6px; right: 6px; background: #16a34a; color: white; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+  .card-body { padding: 8px 10px 10px; }
+  .card-name { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-addr { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-footer { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+  .star { color: #f59e0b; font-size: 11px; }
+  .rating { font-size: 10px; font-weight: 700; color: #1e293b; }
+  .price { font-size: 10px; color: #94a3b8; margin-left: auto; }
+
+  /* ── LIST CARD ── */
+  .list-area { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
+  .list-area::-webkit-scrollbar { display: none; }
+  .list-card { background: white; border-radius: 14px; padding: 12px; display: flex; gap: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .list-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .list-info { flex: 1; min-width: 0; }
+  .list-name { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-addr { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .list-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+  .list-heart { font-size: 18px; cursor: pointer; color: #e2e8f0; flex-shrink: 0; margin-left: auto; }
+  .list-heart.saved { color: #ef4444; }
+  .disc-tag { font-size: 9px; background: #dcfce7; color: #065f46; padding: 2px 6px; border-radius: 6px; font-weight: 700; }
+
+  /* ── SAVED SCREEN ── */
+  .screen-appbar { background: white; padding: 14px 16px; font-size: 18px; font-weight: 800; color: #1a2744; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+  .stat-row { display: flex; gap: 10px; padding: 14px 16px 10px; }
+  .stat-box { flex: 1; background: white; border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .stat-val { font-size: 22px; font-weight: 800; color: #1a2744; }
+  .stat-lbl { font-size: 10px; color: #64748b; margin-top: 2px; }
+  .disc-banner { margin: 0 16px 12px; background: #dcfce7; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #065f46; }
+
+  /* ── TIPS ── */
+  .tip-card { background: white; border-radius: 16px; padding: 14px; display: flex; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .tip-icon-box { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .tip-title { font-size: 13.5px; font-weight: 700; color: #1e293b; }
+  .tip-body { font-size: 11.5px; color: #475569; margin-top: 4px; line-height: 1.5; }
+  .tip-tag { font-size: 9px; background: #dbeafe; color: #1d4ed8; padding: 2px 7px; border-radius: 6px; font-weight: 700; margin-left: auto; white-space: nowrap; }
+  .tip-hdr { display: flex; align-items: flex-start; gap: 6px; }
+
+  /* ── PROFILE ── */
+  .profile-card { margin: 14px 14px 12px; background: linear-gradient(135deg,#1a2744,#334155); border-radius: 20px; padding: 18px; }
+  .prof-top { display: flex; gap: 14px; align-items: flex-start; }
+  .prof-avatar { width: 52px; height: 52px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .prof-name { font-size: 17px; font-weight: 800; color: white; }
+  .prof-sub { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+  .xp-bar-wrap { margin-top: 8px; }
+  .xp-bar-bg { height: 6px; background: rgba(255,255,255,.2); border-radius: 4px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: #f59e0b; border-radius: 4px; }
+  .xp-text { font-size: 9px; color: rgba(255,255,255,.55); margin-top: 3px; }
+  .prof-stats { display: flex; gap: 8px; margin-top: 14px; }
+  .prof-stat { flex: 1; background: rgba(255,255,255,.1); border-radius: 12px; padding: 9px 6px; text-align: center; }
+  .prof-stat-val { font-size: 20px; font-weight: 800; color: white; }
+  .prof-stat-lbl { font-size: 9px; color: rgba(255,255,255,.6); margin-top: 1px; }
+  .section-lbl { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: .8px; padding: 0 14px; margin-bottom: 8px; }
+  .badges-wrap { padding: 0 14px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .badge { display: flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid; }
+  .pref-card { margin: 0 14px 12px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+  .pref-row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid #f1f5f9; }
+  .pref-row:last-child { border-bottom: none; }
+  .pref-icon { font-size: 18px; }
+  .pref-label { font-size: 13px; font-weight: 600; color: #1e293b; flex: 1; }
+  .pref-val { font-size: 12px; color: #94a3b8; }
+  .toggle { width: 40px; height: 22px; background: #2563eb; border-radius: 11px; position: relative; cursor: pointer; }
+  .toggle-knob { width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .version { text-align: center; font-size: 11px; color: #94a3b8; padding: 12px; }
+
+  /* ── BOTTOM SHEET ── */
+  .sheet-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,.4); z-index: 10; border-radius: inherit; }
+  .sheet-overlay.open { display: block; }
+  .bottom-sheet { position: absolute; bottom: 68px; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; padding: 16px; transform: translateY(100%); transition: transform .3s ease; z-index: 11; max-height: 65%; overflow-y: auto; }
+  .bottom-sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px; margin: 0 auto 14px; }
+  .sheet-emoji { font-size: 44px; text-align: center; margin-bottom: 8px; }
+  .sheet-name { font-size: 18px; font-weight: 800; color: #1e293b; text-align: center; }
+  .sheet-addr { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 2px; }
+  .sheet-meta { display: flex; justify-content: center; gap: 12px; margin: 12px 0; }
+  .meta-pill { display: flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 5px 10px; border-radius: 20px; font-size: 11px; color: #475569; font-weight: 600; }
+  .sheet-disc { background: #dcfce7; border: 1px solid #a7f3d0; border-radius: 10px; padding: 9px 12px; margin: 10px 0; font-size: 12px; font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 6px; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .action-btn { flex: 1; padding: 11px; border-radius: 12px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .action-btn span.ico { font-size: 18px; }
+  .btn-save { background: #eff6ff; color: #2563eb; }
+  .btn-visit { background: #f0fdf4; color: #16a34a; }
+  .btn-dir { background: #fff7ed; color: #ea580c; }
+  .btn-share { background: #faf5ff; color: #7c3aed; }
+
+  /* scrollbars hidden everywhere */
+  .screen { scrollbar-width: none; }
+
+  /* tabs label */
+  .tabs-label { font-size: 13px; font-weight: 600; color: #64748b; padding: 12px 16px 4px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<h1>🗺 Travel Buddy — Interactive Preview</h1>
+
+<div class="phone-wrap">
+<div class="phone" id="phone">
+  <div class="phone-notch"><div class="notch-bar"></div></div>
+
+  <!-- ════ EXPLORE SCREEN ════ -->
+  <div class="screen active" id="screen-explore">
+    <div class="app-header">
+      <div class="logo-box">TB</div>
+      <div class="header-text">
+        <h2>Travel Buddy</h2>
+        <p>Istanbul · 16 places nearby</p>
+      </div>
+      <div class="bell-btn">🔔</div>
+    </div>
+    <div class="search-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" placeholder="Search places, food, activities..." id="searchInput" oninput="filterPlaces()">
+      </div>
+    </div>
+    <div class="chips-row" id="chipsRow">
+      <div class="chip active" data-cat="all" onclick="setCategory('all')">🌍 All Places</div>
+      <div class="chip" data-cat="food" onclick="setCategory('food')">🍽 Food</div>
+      <div class="chip" data-cat="drinks" onclick="setCategory('drinks')">☕ Drinks</div>
+      <div class="chip" data-cat="attractions" onclick="setCategory('attractions')">🏛 Attractions</div>
+      <div class="chip" data-cat="activities" onclick="setCategory('activities')">🎯 Activities</div>
+      <div class="chip" data-cat="nightlife" onclick="setCategory('nightlife')">🌙 Nightlife</div>
+      <div class="chip" data-cat="shopping" onclick="setCategory('shopping')">🛍 Shopping</div>
+      <div class="chip" data-cat="nature" onclick="setCategory('nature')">🌿 Nature</div>
+    </div>
+    <div class="view-row">
+      <span class="place-count" id="placeCount">16 places</span>
+      <div class="seg-btn">
+        <button class="active" id="btn-map" onclick="setView('map')">🗺 Map</button>
+        <button id="btn-grid" onclick="setView('grid')">⊞ Grid</button>
+        <button id="btn-list" onclick="setView('list')">☰ List</button>
+      </div>
+    </div>
+
+    <!-- Map View -->
+    <div class="map-area" id="view-map">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+        <!-- roads -->
+        <div class="map-road-h" style="top:38%;left:0;right:0;"></div>
+        <div class="map-road-h" style="top:58%;left:0;right:0;"></div>
+        <div class="map-road-h" style="top:72%;left:0;right:0;"></div>
+        <div class="map-road-v" style="left:25%;top:0;bottom:0;"></div>
+        <div class="map-road-v" style="left:55%;top:0;bottom:0;"></div>
+        <div class="map-road-v" style="left:78%;top:0;bottom:0;"></div>
+        <div class="map-label" style="top:34%;left:28%">Kennedy Cad.</div>
+        <div class="map-label" style="top:54%;left:4%">İstiklal Cad.</div>
+        <div class="map-label" style="top:20%;left:57%">Bosphorus</div>
+        <!-- markers -->
+        <div class="map-marker" style="left:42%;top:52%" onclick="openSheet(0)"><div class="marker-pin" style="background:#7c3aed"><span>🏛</span></div><div class="marker-label">Sultanahmet</div></div>
+        <div class="map-marker" style="left:30%;top:42%" onclick="openSheet(2)"><div class="marker-pin" style="background:#ea580c"><span>🍽</span></div><div class="marker-label">Hafız Mustafa</div></div>
+        <div class="map-marker" style="left:55%;top:36%" onclick="openSheet(4)"><div class="marker-pin" style="background:#7c3aed"><span>🏛</span></div><div class="marker-label">Basilica</div></div>
+        <div class="map-marker" style="left:62%;top:58%" onclick="openSheet(12)"><div class="marker-pin" style="background:#7c3aed"><span>🏛</span></div><div class="marker-label">Galata</div></div>
+        <div class="map-marker" style="left:22%;top:66%" onclick="openSheet(1)"><div class="marker-pin" style="background:#f43f5e"><span>🛍</span></div><div class="marker-label">Grand Bazaar</div></div>
+        <div class="map-marker" style="left:68%;top:28%" onclick="openSheet(9)"><div class="marker-pin" style="background:#06b6d4"><span>☕</span></div><div class="marker-label">Bebek</div></div>
+        <div class="map-marker" style="left:48%;top:76%" onclick="openSheet(10)"><div class="marker-pin" style="background:#7c3aed"><span>🏛</span></div><div class="marker-label">Topkapı</div></div>
+        <!-- user dot -->
+        <div class="my-location" style="position:absolute;left:44%;top:55%"></div>
+      </div>
+    </div>
+
+    <!-- Grid View -->
+    <div class="grid-area" id="view-grid" style="display:none"></div>
+
+    <!-- List View -->
+    <div class="list-area" id="view-list" style="display:none"></div>
+  </div>
+
+  <!-- ════ SAVED SCREEN ════ -->
+  <div class="screen" id="screen-saved">
+    <div class="screen-appbar">My Places</div>
+    <div id="saved-content" style="flex:1;overflow-y:auto;">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#94a3b8;">
+        <div style="font-size:56px;opacity:.3;">🔖</div>
+        <div style="font-size:16px;font-weight:700;color:#1e293b;">No saved places yet</div>
+        <div style="font-size:13px;">Tap ♡ on any place to save it</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ TIPS SCREEN ════ -->
+  <div class="screen" id="screen-tips">
+    <div class="screen-appbar">Travel Tips</div>
+    <div class="chips-row" id="tipChips">
+      <div class="chip active" data-tag="All" onclick="setTipTag('All')">All</div>
+      <div class="chip" data-tag="Transport" onclick="setTipTag('Transport')">Transport</div>
+      <div class="chip" data-tag="Savings" onclick="setTipTag('Savings')">Savings</div>
+      <div class="chip" data-tag="Food" onclick="setTipTag('Food')">Food</div>
+      <div class="chip" data-tag="Activities" onclick="setTipTag('Activities')">Activities</div>
+      <div class="chip" data-tag="Shopping" onclick="setTipTag('Shopping')">Shopping</div>
+      <div class="chip" data-tag="Photography" onclick="setTipTag('Photography')">Photography</div>
+      <div class="chip" data-tag="Finance" onclick="setTipTag('Finance')">Finance</div>
+    </div>
+    <div class="list-area" id="tips-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+
+  <!-- ════ PROFILE SCREEN ════ -->
+  <div class="screen" id="screen-profile">
+    <div class="screen-appbar">Profile</div>
+    <div style="flex:1;overflow-y:auto;scrollbar-width:none;">
+      <div class="profile-card">
+        <div class="prof-top">
+          <div class="prof-avatar">👤</div>
+          <div style="flex:1">
+            <div class="prof-name">Traveler</div>
+            <div class="prof-sub">Istanbul · Level 1</div>
+            <div class="xp-bar-wrap">
+              <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpFill" style="width:0%"></div></div>
+              <div class="xp-text" id="xpText">0 / 100 XP</div>
+            </div>
+          </div>
+        </div>
+        <div class="prof-stats">
+          <div class="prof-stat"><div class="prof-stat-val" id="profSaved">0</div><div class="prof-stat-lbl">Saved</div></div>
+          <div class="prof-stat"><div class="prof-stat-val" id="profVisited">0</div><div class="prof-stat-lbl">Visited</div></div>
+          <div class="prof-stat"><div class="prof-stat-val">0 🔥</div><div class="prof-stat-lbl">Streak</div></div>
+        </div>
+      </div>
+      <div class="section-lbl">ACHIEVEMENTS</div>
+      <div class="badges-wrap" id="badgesWrap"></div>
+      <div class="section-lbl">PREFERENCES</div>
+      <div class="pref-card">
+        <div class="pref-row">
+          <span class="pref-icon">🎓</span>
+          <span class="pref-label">Student Mode</span>
+          <div class="toggle" id="studentToggle" onclick="toggleStudent()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="pref-row" style="border-bottom:1px solid #f1f5f9">
+          <span class="pref-icon">🔔</span>
+          <span class="pref-label">Notifications</span>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+      <div class="section-lbl">GENERAL</div>
+      <div class="pref-card">
+        <div class="pref-row"><span class="pref-icon">🌐</span><span class="pref-label">Language</span><span class="pref-val">English ›</span></div>
+        <div class="pref-row"><span class="pref-icon">☀️</span><span class="pref-label">Appearance</span><span class="pref-val">Light ›</span></div>
+        <div class="pref-row"><span class="pref-icon">⭐</span><span class="pref-label">Rate App</span><span class="pref-val">›</span></div>
+        <div class="pref-row"><span class="pref-icon">✉️</span><span class="pref-label">Contact Us</span><span class="pref-val">›</span></div>
+      </div>
+      <div class="version">Travel Buddy v1.0 · Made with ❤️</div>
+    </div>
+  </div>
+
+  <!-- ════ BOTTOM NAV ════ -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-explore" onclick="switchTab('explore')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      Explore
+    </div>
+    <div class="nav-item" id="nav-saved" onclick="switchTab('saved')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg>
+      Saved
+    </div>
+    <div class="nav-item" id="nav-tips" onclick="switchTab('tips')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+      Tips
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Profile
+    </div>
+  </div>
+
+  <!-- Bottom sheet overlay -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const places = [
+  {id:'1', name:'Sultanahmet Mosque',    addr:'Sultanahmet, Istanbul',  cat:'attractions', emoji:'🏛', rating:4.8, reviews:'48.2k', price:'Free',  hours:'8:30–17:00', disc:true,  discText:'Free entry with student ID'},
+  {id:'2', name:'Grand Bazaar',          addr:'Beyazıt, Istanbul',      cat:'shopping',    emoji:'🛍', rating:4.5, reviews:'62.1k', price:'Free',  hours:'9:00–19:00', disc:false},
+  {id:'3', name:'Hafız Mustafa 1864',    addr:'Sirkeci, Istanbul',      cat:'food',        emoji:'🍽', rating:4.7, reviews:'31.4k', price:'$$',    hours:'7:00–1:00',  disc:false},
+  {id:'4', name:'Mandabatmaz',           addr:'Beyoğlu, Istanbul',      cat:'drinks',      emoji:'☕', rating:4.6, reviews:'8.9k',  price:'$',     hours:'9:00–23:00', disc:true,  discText:'10% off with student card'},
+  {id:'5', name:'Basilica Cistern',      addr:'Sultanahmet, Istanbul',  cat:'attractions', emoji:'🏛', rating:4.7, reviews:'42.3k', price:'$$',    hours:'9:00–19:00', disc:true,  discText:'50% off entry'},
+  {id:'6', name:'Karaköy Güllüoğlu',    addr:'Karaköy, Istanbul',      cat:'food',        emoji:'🍽', rating:4.6, reviews:'19.2k', price:'$',     hours:'7:00–23:00', disc:false},
+  {id:'7', name:'Kadıköy Market',        addr:'Kadıköy, Istanbul',      cat:'food',        emoji:'🍽', rating:4.4, reviews:'15.6k', price:'$',     hours:'6:00–20:00', disc:true,  discText:'Budget-friendly area'},
+  {id:'8', name:'Pierre Loti Hill',      addr:'Eyüpsultan, Istanbul',   cat:'nature',      emoji:'🌿', rating:4.5, reviews:'11.3k', price:'$',     hours:'8:00–22:00', disc:true,  discText:'50% off cable car'},
+  {id:'9', name:'Istanbul Modern',       addr:'Karaköy, Istanbul',      cat:'attractions', emoji:'🏛', rating:4.3, reviews:'9.8k',  price:'$$',    hours:'10:00–18:00',disc:true,  discText:'Free with student ID'},
+  {id:'10',name:'Bebek Sahili',          addr:'Bebek, Istanbul',        cat:'drinks',      emoji:'☕', rating:4.4, reviews:'7.2k',  price:'$$',    hours:'All day',     disc:false},
+  {id:'11',name:'Topkapı Palace',        addr:'Sultanahmet, Istanbul',  cat:'attractions', emoji:'🏛', rating:4.7, reviews:'52.1k', price:'$$',    hours:'9:00–18:00', disc:true,  discText:'50% off entry'},
+  {id:'12',name:'Balat Neighborhood',    addr:'Balat, Istanbul',        cat:'activities',  emoji:'🎯', rating:4.5, reviews:'13.4k', price:'Free',  hours:'Always open', disc:false},
+  {id:'13',name:'Galata Tower',          addr:'Karaköy, Istanbul',      cat:'attractions', emoji:'🏛', rating:4.6, reviews:'38.7k', price:'$$',    hours:'8:30–23:00', disc:true,  discText:'40% off entry'},
+  {id:'14',name:'Ortaköy Square',        addr:'Ortaköy, Istanbul',      cat:'nightlife',   emoji:'🌙', rating:4.3, reviews:'11.2k', price:'$',     hours:'10:00–2:00', disc:false},
+  {id:'15',name:"Princes' Islands Ferry",addr:'Eminönü, Istanbul',      cat:'nature',      emoji:'🌿', rating:4.6, reviews:'22.5k', price:'$',     hours:'From 6:30',  disc:true,  discText:'50% off ferry ticket'},
+  {id:'16',name:'Miniaturk',             addr:'Eyüpsultan, Istanbul',   cat:'activities',  emoji:'🎯', rating:4.3, reviews:'8.1k',  price:'$',     hours:'9:00–18:00', disc:true,  discText:'30% off entry'},
+];
+
+const tips = [
+  {title:'Get an Istanbulkart',     body:'Load a transit card at any kiosk — trams, ferries and buses cost under ₺10 per ride.', icon:'🚇', tag:'Transport'},
+  {title:'Museum Pass İstanbul',    body:'Save big with a 5-day pass covering 12+ museums. Students get 50% off the pass itself.', icon:'🎫', tag:'Savings'},
+  {title:'Ferry Over Taxi',         body:'Bosphorus ferries are scenic AND cheap. Kadıköy–Eminönü is the best commute in the city.', icon:'⛴', tag:'Transport'},
+  {title:'Eat Like a Local',        body:'Skip tourist menus. Simit (₺5), kokoreç, and balık-ekmek are street food essentials.', icon:'🥖', tag:'Food'},
+  {title:'Free Walking Tours',      body:'Tip-based tours from Sultanahmet — great for first-timers to orient themselves.', icon:'🚶', tag:'Activities'},
+  {title:'Haggle at the Bazaar',    body:'At the Grand Bazaar, negotiation is expected. Start at 40% of asking price.', icon:'💬', tag:'Shopping'},
+  {title:'Best Photo Spots',        body:'Galata Tower, Pierre Loti Hill, Balat streets, and Çamlıca Hill at sunset.', icon:'📸', tag:'Photography'},
+  {title:'Currency Tips',           body:'Exchange at PTT post offices or Döviz shops — never at the airport.', icon:'💳', tag:'Finance'},
+  {title:'Student Museum Free Days',body:'Many Istanbul museums are free for students on the first Sunday of each month.', icon:'🎓', tag:'Savings'},
+  {title:'Istanbulkart Discount',   body:'Students with an e-Devlet verified card get discounted fares automatically.', icon:'🏷',  tag:'Savings'},
+];
+
+const tipGrads = [
+  ['#eff6ff','#bfdbfe'],['#fff7ed','#fed7aa'],['#ecfeff','#a5f3fc'],
+  ['#fffbeb','#fde68a'],['#faf5ff','#e9d5ff'],['#f0fdf4','#bbf7d0'],
+];
+
+const catColors = {food:'#ea580c',drinks:'#06b6d4',attractions:'#7c3aed',nightlife:'#2563eb',shopping:'#f43f5e',nature:'#16a34a',activities:'#f59e0b'};
+const catBgs   = {food:'#fff7ed',drinks:'#ecfeff',attractions:'#faf5ff',nightlife:'#eff6ff',shopping:'#fff1f2',nature:'#f0fdf4',activities:'#fffbeb'};
+
+let activeCategory = 'all';
+let activeView = 'map';
+let savedIds = new Set();
+let visitedIds = new Set();
+let xp = 0;
+let tipTag = 'All';
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return places.filter(p => {
+    const matchCat = activeCategory === 'all' || p.cat === activeCategory;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.addr.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll('#chipsRow .chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+  renderCurrentView();
+}
+
+function filterPlaces() { renderCurrentView(); }
+
+function setView(v) {
+  activeView = v;
+  ['map','grid','list'].forEach(m => {
+    document.getElementById('view-'+m).style.display = m === v ? (m==='map'?'block':'flex') : 'none';
+    document.getElementById('btn-'+m).classList.toggle('active', m === v);
+  });
+  if (v !== 'map') renderCurrentView();
+}
+
+function renderCurrentView() {
+  const filtered = getFiltered();
+  document.getElementById('placeCount').textContent = `${filtered.length} place${filtered.length !== 1 ? 's' : ''}`;
+  if (activeView === 'grid') renderGrid(filtered);
+  if (activeView === 'list') renderList(filtered);
+}
+
+function renderGrid(places) {
+  const el = document.getElementById('view-grid');
+  el.innerHTML = places.map((p,i) => `
+    <div class="grid-card" onclick="openSheet(${places.indexOf(p) !== -1 ? window.places.indexOf(p) : i})">
+      <div class="card-img" style="background:${catBgs[p.cat]||'#f1f5f9'}">
+        <span style="font-size:40px">${p.emoji}</span>
+        ${p.disc ? '<div class="card-badge">🎓 Discount</div>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-addr">${p.addr}</div>
+        <div class="card-footer">
+          <span class="star">★</span><span class="rating">${p.rating}</span>
+          <span class="price">${p.price}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  window.gridPlaces = places;
+}
+
+function renderList(ps) {
+  const el = document.getElementById('view-list');
+  el.innerHTML = ps.map((p) => {
+    const idx = places.indexOf(p);
+    const saved = savedIds.has(p.id);
+    return `
+    <div class="list-card">
+      <div class="list-icon" style="background:${catBgs[p.cat]||'#f1f5f9'}">${p.emoji}</div>
+      <div class="list-info" onclick="openSheet(${idx})">
+        <div class="list-name">${p.name}</div>
+        <div class="list-addr">${p.addr}</div>
+        <div class="list-row">
+          <span class="star">★</span><span class="rating">${p.rating}</span>
+          <span style="font-size:10px;color:#94a3b8;margin-left:4px">(${p.reviews})</span>
+          ${p.disc ? '<span class="disc-tag">🎓 Discount</span>' : ''}
+        </div>
+      </div>
+      <div class="list-heart ${saved?'saved':''}" onclick="toggleSave('${p.id}')">${saved?'❤️':'🤍'}</div>
+    </div>`;
+  }).join('');
+}
+
+function openSheet(idx) {
+  const p = places[idx];
+  if (!p) return;
+  const saved = savedIds.has(p.id);
+  const visited = visitedIds.has(p.id);
+  document.getElementById('sheetContent').innerHTML = `
+    <div class="sheet-emoji">${p.emoji}</div>
+    <div class="sheet-name">${p.name}</div>
+    <div class="sheet-addr">${p.addr}</div>
+    <div class="sheet-meta">
+      <div class="meta-pill">★ ${p.rating} (${p.reviews})</div>
+      <div class="meta-pill">🕐 ${p.hours}</div>
+      <div class="meta-pill">💰 ${p.price}</div>
+    </div>
+    ${p.disc ? `<div class="sheet-disc">🎓 ${p.discText}</div>` : ''}
+    <div class="sheet-actions">
+      <button class="action-btn btn-save" onclick="toggleSave('${p.id}')">
+        <span class="ico">${saved ? '❤️' : '🤍'}</span>
+        <span>${saved ? 'Saved' : 'Save'}</span>
+      </button>
+      <button class="action-btn btn-visit" onclick="markVisited('${p.id}')">
+        <span class="ico">${visited ? '✅' : '👁'}</span>
+        <span>${visited ? 'Visited' : 'Visit'}</span>
+      </button>
+      <button class="action-btn btn-dir">
+        <span class="ico">🗺</span><span>Directions</span>
+      </button>
+      <button class="action-btn btn-share">
+        <span class="ico">↗</span><span>Share</span>
+      </button>
+    </div>
+  `;
+  document.getElementById('sheetOverlay').classList.add('open');
+  document.getElementById('bottomSheet').classList.add('open');
+}
+
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('bottomSheet').classList.remove('open');
+}
+
+function toggleSave(id) {
+  if (savedIds.has(id)) {
+    savedIds.delete(id);
+    xp = Math.max(0, xp - 5);
+  } else {
+    savedIds.add(id);
+    xp += 5;
+  }
+  updateStats();
+  renderSaved();
+  renderCurrentView();
+  closeSheet();
+  setTimeout(() => {
+    const filtered = getFiltered();
+    if (activeView === 'list') renderList(filtered);
+    if (activeView === 'grid') renderGrid(filtered);
+  }, 50);
+}
+
+function markVisited(id) {
+  if (!savedIds.has(id)) { toggleSave(id); return; }
+  if (!visitedIds.has(id)) {
+    visitedIds.add(id);
+    xp += 10;
+    updateStats();
+  }
+  closeSheet();
+}
+
+function renderSaved() {
+  const saved = places.filter(p => savedIds.has(p.id));
+  const visited = saved.filter(p => visitedIds.has(p.id)).length;
+  const discs = saved.filter(p => p.disc).length;
+  const el = document.getElementById('saved-content');
+  document.getElementById('profSaved').textContent = saved.length;
+  document.getElementById('profVisited').textContent = visited;
+
+  if (!saved.length) {
+    el.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#94a3b8;">
+      <div style="font-size:56px;opacity:.3;">🔖</div>
+      <div style="font-size:16px;font-weight:700;color:#1e293b;">No saved places yet</div>
+      <div style="font-size:13px;">Tap ♡ on any place to save it</div>
+    </div>`; return;
+  }
+  el.innerHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val">${saved.length}</div><div class="stat-lbl">Saved</div></div>
+      <div class="stat-box"><div class="stat-val">${visited}</div><div class="stat-lbl">Visited</div></div>
+      <div class="stat-box"><div class="stat-val">${discs}</div><div class="stat-lbl">Discounts</div></div>
+    </div>
+    ${discs ? `<div class="disc-banner">🎓 ${discs} saved place${discs>1?'s':''} with student discounts</div>` : ''}
+    <div class="list-area" style="padding:0 14px 14px;">
+      ${saved.map(p => {
+        const idx = places.indexOf(p);
+        return `<div class="list-card">
+          <div class="list-icon" style="background:${catBgs[p.cat]||'#f1f5f9'}">${p.emoji}</div>
+          <div class="list-info" onclick="openSheet(${idx})">
+            <div class="list-name">${p.name}</div>
+            <div class="list-addr">${p.addr}</div>
+            <div class="list-row">
+              <span class="star">★</span><span class="rating">${p.rating}</span>
+              ${visitedIds.has(p.id) ? '<span style="font-size:10px;color:#16a34a;margin-left:6px;font-weight:700;">✓ Visited</span>' : ''}
+            </div>
+          </div>
+          <div class="list-heart saved" onclick="toggleSave('${p.id}')">❤️</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function updateStats() {
+  const nextXP = 100;
+  const pct = Math.min(100, (xp / nextXP) * 100);
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('xpText').textContent = `${xp} / ${nextXP} XP`;
+  renderBadges();
+}
+
+function renderBadges() {
+  const saved = savedIds.size;
+  const vis = visitedIds.size;
+  const foodVis = places.filter(p => visitedIds.has(p.id) && p.cat === 'food').length;
+  const badges = [
+    {label:'First Visit',    icon:'🏆', unlocked:vis>=1,   color:'#f59e0b'},
+    {label:'5 Saved',        icon:'❤️',  unlocked:saved>=5, color:'#2563eb'},
+    {label:'Foodie',         icon:'🍽',  unlocked:foodVis>=5,color:'#ea580c'},
+    {label:'Culture Vulture',icon:'🏛',  unlocked:false,    color:'#7c3aed'},
+    {label:'Night Owl',      icon:'🌙',  unlocked:false,    color:'#0891b2'},
+    {label:'Budget Pro',     icon:'💰',  unlocked:false,    color:'#16a34a'},
+  ];
+  document.getElementById('badgesWrap').innerHTML = badges.map(b => `
+    <div class="badge" style="background:${b.unlocked?b.color+'1e':'#f1f5f9'};border-color:${b.unlocked?b.color+'66':'#e2e8f0'};color:${b.unlocked?b.color:'#cbd5e1'}">
+      <span style="filter:${b.unlocked?'none':'grayscale(1)'}">${b.icon}</span> ${b.label}
+    </div>`).join('');
+}
+
+function renderTips(tag) {
+  const filtered = tag === 'All' ? tips : tips.filter(t => t.tag === tag);
+  document.getElementById('tips-list').innerHTML = filtered.map((t,i) => {
+    const g = tipGrads[i % tipGrads.length];
+    return `<div class="tip-card">
+      <div class="tip-icon-box" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${t.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="tip-hdr">
+          <div class="tip-title" style="flex:1">${t.title}</div>
+          <div class="tip-tag">${t.tag}</div>
+        </div>
+        <div class="tip-body">${t.body}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setTipTag(tag) {
+  tipTag = tag;
+  document.querySelectorAll('#tipChips .chip').forEach(c => c.classList.toggle('active', c.dataset.tag === tag));
+  renderTips(tag);
+}
+
+function toggleStudent() {
+  const t = document.getElementById('studentToggle');
+  const on = t.style.background !== 'rgb(226, 232, 240)';
+  t.style.background = on ? '#e2e8f0' : '#2563eb';
+  t.querySelector('.toggle-knob').style.right = on ? 'auto' : '2px';
+  t.querySelector('.toggle-knob').style.left = on ? '2px' : 'auto';
+}
+
+function switchTab(tab) {
+  ['explore','saved','tips','profile'].forEach(t => {
+    document.getElementById('screen-'+t).classList.toggle('active', t === tab);
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+  });
+}
+
+// init
+window.places = places;
+renderTips('All');
+renderBadges();
+renderGrid(places);
+renderList(places);
+</script>
+</body>
+</html>

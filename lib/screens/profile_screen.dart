@@ -9,12 +9,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final saved   = state.savedPlaces.length;
-    final visited = state.savedPlaces.where((p) => p.isVisited).length;
-    final xp      = state.xp;
-    final level   = state.level;
-    final streak  = state.streak;
-    final nextXP  = AppDatabase.xpForNextLevel(level);
+    final saved    = state.savedPlaces.length;
+    final visited  = state.visitedCount;
+    final sharedC  = state.shared;
+    final xp       = state.xp;
+    final level    = state.level;
+    final streak   = state.streak;
+    final nextXP   = AppDatabase.xpForNextLevel(level);
     final progress = xp / nextXP;
 
     return Scaffold(
@@ -51,8 +52,21 @@ class ProfileScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Traveler',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                        Row(children: [
+                          const Text('Traveler',
+                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                          const SizedBox(width: 8),
+                          if (streak > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFf59e0b).withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text('🔥 $streak',
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                            ),
+                        ]),
                         Text('Istanbul · Level $level',
                             style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
                         const SizedBox(height: 6),
@@ -78,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
                 Row(children: [
                   _statBox('$saved',   'Saved'),
                   _statBox('$visited', 'Visited'),
-                  _statBox('$streak',  'Streak 🔥'),
+                  _statBox('$sharedC', 'Shared'),
                 ]),
               ],
             ),
@@ -172,17 +186,13 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildBadges(AppState state) {
-    final visited = state.savedPlaces.where((p) => p.isVisited).length;
-    final saved   = state.savedPlaces.length;
-    final foodVisits = state.savedPlaces.where((p) => p.isVisited && p.category == 'food').length;
-
     final badges = [
-      {'label': 'First Visit',     'icon': '🏆', 'desc': 'Visit your first place',      'unlocked': visited >= 1,  'color': const Color(0xFFf59e0b)},
-      {'label': '5 Saved',         'icon': '❤️',  'desc': 'Save 5 places',              'unlocked': saved >= 5,    'color': const Color(0xFF2563eb)},
-      {'label': 'Foodie',          'icon': '🍽',  'desc': 'Visit 5 food places',         'unlocked': foodVisits >= 5,'color': const Color(0xFFea580c)},
-      {'label': 'Culture Vulture', 'icon': '🏛',  'desc': 'Visit 5 attractions',         'unlocked': false,         'color': const Color(0xFF7c3aed)},
-      {'label': 'Night Owl',       'icon': '🌙',  'desc': 'Visit 3 nightlife spots',     'unlocked': false,         'color': const Color(0xFF0891b2)},
-      {'label': 'Budget Pro',      'icon': '💰',  'desc': 'Use 5 student discounts',     'unlocked': false,         'color': const Color(0xFF16a34a)},
+      {'label': 'First Visit',     'icon': '🏆', 'desc': 'Visit your first place',  'unlocked': state.hasFirstVisit,     'color': const Color(0xFFf59e0b)},
+      {'label': '5 Saved',         'icon': '❤️',  'desc': 'Save 5 places',          'unlocked': state.hasFiveSaved,      'color': const Color(0xFF2563eb)},
+      {'label': 'Foodie',          'icon': '🍽',  'desc': 'Visit 5 food places',     'unlocked': state.hasFoodie,         'color': const Color(0xFFea580c)},
+      {'label': 'Culture Vulture', 'icon': '🏛',  'desc': 'Visit 5 attractions',     'unlocked': state.hasCultureVulture, 'color': const Color(0xFF7c3aed)},
+      {'label': 'Night Owl',       'icon': '🌙',  'desc': 'Visit 3 nightlife spots', 'unlocked': state.hasNightOwl,       'color': const Color(0xFF0891b2)},
+      {'label': 'Budget Pro',      'icon': '💰',  'desc': 'Use 5 student discounts', 'unlocked': state.hasBudgetPro,      'color': const Color(0xFF16a34a)},
     ];
 
     return Wrap(
