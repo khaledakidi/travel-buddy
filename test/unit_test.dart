@@ -35,8 +35,8 @@ void main() {
   });
 
   group('Place model (T13: Discount badges)', () {
-    test('Demo data has 16 Istanbul places', () {
-      expect(demoPlaces.length, 16);
+    test('Demo data has 50 Istanbul places', () {
+      expect(demoPlaces.length, 50);
     });
 
     test('Discount places carry discountText', () {
