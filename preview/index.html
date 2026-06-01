@@ -476,6 +476,19 @@
       </div>
     </div>
 
+    <!-- ════ VISITED ════ -->
+    <div class="screen" id="screen-visited">
+      <div class="status-bar"><span>9:41</span><span class="right">5G ●●●● 100%</span></div>
+      <div class="screen-appbar" data-i18n="visitedTitle">Visited Places</div>
+      <div id="visited-content" style="flex:1;overflow-y:auto;background:#f0f4f8;">
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title" data-i18n="visitedEmptyTitle">No visited places yet</div>
+          <div class="empty-sub" data-i18n="visitedEmptyHint">Open a saved place and tap “Mark Visited” to track it here</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════ TIPS ════ -->
     <div class="screen" id="screen-tips">
       <div class="status-bar"><span>9:41</span><span class="right">5G ●●●● 100%</span></div>
@@ -554,6 +567,10 @@
       <div class="nav-item" id="nav-saved" onclick="switchTab('saved')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"/></svg>
         <span data-i18n="navSaved">Saved</span>
+      </div>
+      <div class="nav-item" id="nav-visited" onclick="switchTab('visited')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <span data-i18n="navVisited">Visited</span>
       </div>
       <div class="nav-item" id="nav-tips" onclick="switchTab('tips')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
@@ -782,6 +799,7 @@ function toggleSave(id) {
   }
   updateStats();
   renderSaved();
+  renderVisited();
   renderCurrentView();
 }
 
@@ -798,6 +816,7 @@ function markVisited(id) {
   }
   updateStats();
   renderSaved();
+  renderVisited();
   renderCurrentView();
 }
 
@@ -922,11 +941,42 @@ function toggleStudent() {
 }
 
 function switchTab(tab) {
-  ['explore','saved','tips','profile'].forEach(t => {
+  ['explore','saved','visited','tips','profile'].forEach(t => {
     document.getElementById('screen-'+t).classList.toggle('active', t === tab);
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
+  if (tab === 'visited') renderVisited();
   closeSheet();
+}
+
+function renderVisited() {
+  const vis = places.filter(p => visitedIds.has(p.id));
+  const el = document.getElementById('visited-content');
+  if (!vis.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title">${I18N.visitedEmptyTitle[L()]}</div>
+      <div class="empty-sub">${I18N.visitedEmptyHint[L()]}</div>
+    </div>`;
+    return;
+  }
+  const banner = lang==='tr' ? `${vis.length} yer ziyaret edildi` : `${vis.length} place${vis.length!==1?'s':''} visited`;
+  el.innerHTML = `
+    <div style="margin:16px 16px 8px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-weight:700;font-size:14px;">✅ ${banner}</div>
+    <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:10px;">
+      ${vis.map(p => {
+        const idx = places.indexOf(p);
+        return `<div class="list-card">
+          <div class="list-icon" style="background:${catBgs[p.cat]||'#f1f5f9'}">${p.emoji}</div>
+          <div class="list-info" onclick="openSheet(${idx})">
+            <div class="list-name">${p.name}</div>
+            <div class="list-addr">${p.addr}</div>
+            <div class="list-row"><span class="star">★</span><span class="rating">${p.rating}</span></div>
+          </div>
+          <div style="font-size:20px">✅</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 // ══════════════ DARK MODE + LANGUAGE ══════════════
@@ -936,9 +986,14 @@ let dark = false;
 const I18N = {
   navExplore:  ['Explore', 'Keşfet'],
   navSaved:    ['Saved', 'Kayıtlı'],
+  navVisited:  ['Visited', 'Ziyaret'],
   navTips:     ['Tips', 'İpuçları'],
   navProfile:  ['Profile', 'Profil'],
   savedTitle:  ['My Places', 'Yerlerim'],
+  visitedTitle:['Visited Places', 'Ziyaret Edilenler'],
+  visitedEmptyTitle:['No visited places yet', 'Henüz ziyaret edilen yer yok'],
+  visitedEmptyHint:['Open a saved place and tap “Mark Visited” to track it here',
+                    'Bir kayıtlı yeri açıp “Ziyaret Edildi”ye dokunarak buradan takip edin'],
   tipsTitle:   ['Travel Tips', 'Seyahat İpuçları'],
   profileTitle:['Profile', 'Profil'],
   achievements:['ACHIEVEMENTS', 'BAŞARIMLAR'],
@@ -987,8 +1042,11 @@ const TIP_TR = {
 
 const L = () => (lang === 'tr' ? 1 : 0);
 function countLabel(n) { return lang === 'tr' ? `${n} yer` : `${n} place${n !== 1 ? 's' : ''}`; }
-function tTipTitle(en) { return TIP_TR[en] ? TIP_TR[en][0] : en; }
-function tTipBody(en)  { return TIP_TR[en] ? TIP_TR[en][1] : (tips.find(t => t.title === en) || {}).body || ''; }
+function tTipTitle(en) { return (lang === 'tr' && TIP_TR[en]) ? TIP_TR[en][0] : en; }
+function tTipBody(en)  {
+  const enBody = (tips.find(t => t.title === en) || {}).body || '';
+  return (lang === 'tr' && TIP_TR[en]) ? TIP_TR[en][1] : enBody;
+}
 function tTagLabel(t)  { return TAG_LABELS[t] ? TAG_LABELS[t][L()] : t; }
 
 function applyLang() {
@@ -1021,6 +1079,7 @@ function applyLang() {
   renderCurrentView();
   renderTips(document.querySelector('#tipChips .chip.active')?.dataset.tag || 'All');
   renderSaved();
+  renderVisited();
 }
 
 function toggleLang() { lang = (lang === 'en') ? 'tr' : 'en'; applyLang(); }
