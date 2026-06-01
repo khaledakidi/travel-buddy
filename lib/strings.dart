@@ -11,8 +11,18 @@ class AppStrings {
   // ── Navigation ──
   String get navExplore => _t('Explore', 'Keşfet');
   String get navSaved   => _t('Saved', 'Kayıtlı');
+  String get navVisited => _t('Visited', 'Ziyaret');
   String get navTips    => _t('Tips', 'İpuçları');
   String get navProfile => _t('Profile', 'Profil');
+
+  // ── Visited screen ──
+  String get visitedTitle => _t('Visited Places', 'Ziyaret Edilenler');
+  String get visitedEmptyTitle => _t('No visited places yet', 'Henüz ziyaret edilen yer yok');
+  String get visitedEmptyHint => _t(
+      'Open a saved place and tap "Mark as Visited" to track it here',
+      'Bir kayıtlı yeri açıp "Ziyaret Edildi"ye dokunarak buradan takip edin');
+  String visitedCountLabel(int n) =>
+      isTr ? '$n yer ziyaret edildi' : '$n place${n != 1 ? 's' : ''} visited';
 
   // ── Explore ──
   String get brandSubtitle => _t('Istanbul', 'İstanbul');
@@ -71,7 +81,9 @@ class AppStrings {
   }
 
   String tipTitle(String en) => isTr ? (_tipTitleTr[en] ?? en) : en;
-  String tipBody(String en) => isTr ? (_tipBodyTr[en] ?? en) : en;
+  // [enTitle] is the lookup key; [enBody] is shown in English (and as TR fallback).
+  String tipBody(String enTitle, String enBody) =>
+      isTr ? (_tipBodyTr[enTitle] ?? enBody) : enBody;
 
   static const Map<String, String> _tipTitleTr = {
     'Get an Istanbulkart': 'İstanbulkart Edinin',

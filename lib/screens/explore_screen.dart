@@ -299,7 +299,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
       myLocationButtonEnabled: true,
       markers: _markers,
       mapType: MapType.normal,
-      onCameraIdle: _buildMarkers,
     );
   }
 

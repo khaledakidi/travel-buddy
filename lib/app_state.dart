@@ -20,6 +20,10 @@ class AppState extends ChangeNotifier {
   bool _studentMode = true;
   bool get studentMode => _studentMode;
 
+  // Notifications
+  bool _notifications = true;
+  bool get notifications => _notifications;
+
   // Appearance (dark mode)
   bool _darkMode = false;
   bool get darkMode => _darkMode;
@@ -84,9 +88,10 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _studentMode = prefs.getBool('studentMode') ?? true;
-    _darkMode    = prefs.getBool('darkMode') ?? false;
-    _language    = prefs.getString('language') ?? 'en';
+    _studentMode   = prefs.getBool('studentMode') ?? true;
+    _notifications = prefs.getBool('notifications') ?? true;
+    _darkMode      = prefs.getBool('darkMode') ?? false;
+    _language      = prefs.getString('language') ?? 'en';
     notifyListeners();
   }
 
@@ -150,6 +155,13 @@ class AppState extends ChangeNotifier {
     _studentMode = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('studentMode', value);
+    notifyListeners();
+  }
+
+  Future<void> setNotifications(bool value) async {
+    _notifications = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications', value);
     notifyListeners();
   }
 

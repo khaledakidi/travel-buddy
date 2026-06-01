@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../strings.dart';
 import 'explore_screen.dart';
 import 'saved_screen.dart';
+import 'visited_screen.dart';
 import 'tips_screen.dart';
 import 'profile_screen.dart';
 
@@ -20,6 +21,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = const [
     ExploreScreen(),
     SavedScreen(),
+    VisitedScreen(),
     TipsScreen(),
     ProfileScreen(),
   ];
@@ -46,6 +48,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: const Icon(Icons.favorite_border),
             selectedIcon: const Icon(Icons.favorite),
             label: s.navSaved,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.check_circle_outline),
+            selectedIcon: const Icon(Icons.check_circle),
+            label: s.navVisited,
           ),
           NavigationDestination(
             icon: const Icon(Icons.lightbulb_outline),

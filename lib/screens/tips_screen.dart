@@ -126,7 +126,7 @@ class _TipsScreenState extends State<TipsScreen> {
                     ),
                   ]),
                   const SizedBox(height: 6),
-                  Text(s.tipBody(tip['title'] as String),
+                  Text(s.tipBody(tip['title'] as String, tip['body'] as String),
                       style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.5)),
                 ],
               ),

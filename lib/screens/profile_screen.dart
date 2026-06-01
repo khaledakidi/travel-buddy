@@ -125,8 +125,8 @@ class ProfileScreen extends StatelessWidget {
               ),
               Divider(height: 0, color: c.border),
               SwitchListTile(
-                value: true,
-                onChanged: (_) {},
+                value: state.notifications,
+                onChanged: state.setNotifications,
                 title: Text(s.notifications, style: TextStyle(fontWeight: FontWeight.w600, color: c.textPrimary)),
                 subtitle: Text(s.notificationsSub, style: TextStyle(color: c.textSecondary)),
                 secondary: Icon(Icons.notifications_outlined, color: c.textSecondary),

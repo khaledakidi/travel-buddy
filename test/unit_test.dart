@@ -105,9 +105,13 @@ void main() {
     });
 
     test('Tip titles and bodies have Turkish translations', () {
+      const enBody = 'Load a transit card at any kiosk.';
       expect(tr.tipTitle('Get an Istanbulkart'), 'İstanbulkart Edinin');
-      expect(tr.tipBody('Get an Istanbulkart').isNotEmpty, true);
-      expect(tr.tipBody('Get an Istanbulkart') != en.tipBody('Get an Istanbulkart'), true);
+      expect(tr.tipBody('Get an Istanbulkart', enBody).isNotEmpty, true);
+      // Turkish body differs from the English fallback
+      expect(tr.tipBody('Get an Istanbulkart', enBody) != enBody, true);
+      // English mode returns the English body unchanged
+      expect(en.tipBody('Get an Istanbulkart', enBody), enBody);
     });
 
     test('Appearance label reflects dark/light state', () {
