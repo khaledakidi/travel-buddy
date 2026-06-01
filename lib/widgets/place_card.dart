@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../data/model/place.dart';
+import '../strings.dart';
 
 enum CardVariant { grid, list }
 
@@ -46,12 +47,11 @@ class _PlaceCardState extends State<PlaceCard>
   }
 
   void _toggleSave(AppState state) {
+    final s = AppStrings(state.language);
     _heartCtrl.forward(from: 0);
     state.toggleSave(widget.place);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(state.isSaved(widget.place.id)
-          ? '❤️ Saved to your places!'
-          : '📍 Removed from saved'),
+      content: Text(state.isSaved(widget.place.id) ? s.snackSaved : s.snackRemoved),
       duration: const Duration(seconds: 1),
       behavior: SnackBarBehavior.floating,
     ));
@@ -123,8 +123,8 @@ class _PlaceCardState extends State<PlaceCard>
                         color: Colors.green[700],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text('🎓 Discount',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text(AppStrings(state.language).discountTag,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 // Visited badge

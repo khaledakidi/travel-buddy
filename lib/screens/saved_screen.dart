@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
+import '../theme.dart';
+import '../strings.dart';
 import '../widgets/place_card.dart';
 import '../widgets/place_detail_sheet.dart';
 
@@ -10,24 +12,22 @@ class SavedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state  = context.watch<AppState>();
+    final c = AppColors.of(state.darkMode);
+    final s = AppStrings(state.language);
     final places  = state.savedPlaces;
     final visited = places.where((p) => p.isVisited).length;
     final discounts = places.where((p) => p.hasStudentDiscount).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
-      appBar: AppBar(
-        title: const Text('My Places'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: c.scaffold,
+      appBar: AppBar(title: Text(s.savedTitle)),
       body: places.isEmpty
-          ? _buildEmpty()
+          ? _buildEmpty(c, s)
           : CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: _buildSummary(places.length, visited, discounts)),
+                SliverToBoxAdapter(child: _buildSummary(places.length, visited, discounts, c, s)),
                 if (discounts > 0)
-                  SliverToBoxAdapter(child: _buildDiscountBanner(discounts)),
+                  SliverToBoxAdapter(child: _buildDiscountBanner(discounts, s)),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                   sliver: SliverList(
@@ -49,9 +49,9 @@ class SavedScreen extends StatelessWidget {
                           onDismissed: (_) {
                             state.toggleSave(places[i]);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Removed from saved'),
-                                duration: Duration(seconds: 1),
+                              SnackBar(
+                                content: Text(s.removedFromSaved),
+                                duration: const Duration(seconds: 1),
                               ),
                             );
                           },
@@ -79,38 +79,38 @@ class SavedScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummary(int total, int visited, int discounts) {
+  Widget _buildSummary(int total, int visited, int discounts, AppColors c, AppStrings s) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: Row(children: [
-        _statBox('$total', 'Saved'),
+        _statBox('$total', s.statSaved, c),
         const SizedBox(width: 10),
-        _statBox('$visited', 'Visited'),
+        _statBox('$visited', s.statVisited, c),
         const SizedBox(width: 10),
-        _statBox('$discounts', 'Discounts'),
+        _statBox('$discounts', s.statDiscounts, c),
       ]),
     );
   }
 
-  Widget _statBox(String value, String label) {
+  Widget _statBox(String value, String label, AppColors c) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: c.surface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
         ),
         child: Column(children: [
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF1a2744))),
+          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.textPrimary)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748b))),
+          Text(label, style: TextStyle(fontSize: 11, color: c.textSecondary)),
         ]),
       ),
     );
   }
 
-  Widget _buildDiscountBanner(int count) {
+  Widget _buildDiscountBanner(int count, AppStrings s) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -122,24 +122,26 @@ class SavedScreen extends StatelessWidget {
       child: Row(children: [
         const Text('🎓', style: TextStyle(fontSize: 18)),
         const SizedBox(width: 8),
-        Text('$count saved place${count > 1 ? 's' : ''} with student discounts',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF065f46))),
+        Expanded(
+          child: Text(s.discountBanner(count),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF065f46))),
+        ),
       ]),
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(AppColors c, AppStrings s) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bookmark_border, size: 64, color: Colors.grey[300]),
+          Icon(Icons.bookmark_border, size: 64, color: c.textMuted.withOpacity(0.5)),
           const SizedBox(height: 16),
-          const Text('No saved places yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1e293b))),
+          Text(s.emptyTitle,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: c.textPrimary)),
           const SizedBox(height: 8),
-          const Text('Tap ♡ on any place to save it here',
-              style: TextStyle(fontSize: 14, color: Color(0xFF94a3b8))),
+          Text(s.emptyHint,
+              style: TextStyle(fontSize: 14, color: c.textMuted)),
         ],
       ),
     );

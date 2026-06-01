@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../app_state.dart';
+import '../theme.dart';
+import '../strings.dart';
 
 const List<Map<String, dynamic>> kTips = [
   {'title':'Get an Istanbulkart',    'body':'Load a transit card at any kiosk — trams, ferries and buses cost under ₺10 per ride.', 'icon':'🚇', 'tag':'Transport'},
@@ -26,16 +30,17 @@ class _TipsScreenState extends State<TipsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    final c = AppColors.of(state.darkMode);
+    final s = AppStrings(state.language);
     final filtered = _activeTag == 'All'
         ? kTips
         : kTips.where((t) => t['tag'] == _activeTag).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: c.scaffold,
       appBar: AppBar(
-        title: const Text('Travel Tips'),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: Text(s.tipsTitle),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: SizedBox(
@@ -48,16 +53,16 @@ class _TipsScreenState extends State<TipsScreen> {
               itemBuilder: (_, i) {
                 final isActive = _activeTag == _tags[i];
                 return ChoiceChip(
-                  label: Text(_tags[i]),
+                  label: Text(s.tagLabel(_tags[i])),
                   selected: isActive,
                   onSelected: (_) => setState(() => _activeTag = _tags[i]),
                   selectedColor: const Color(0xFF1a2744),
                   labelStyle: TextStyle(
-                    color: isActive ? Colors.white : const Color(0xFF64748b),
+                    color: isActive ? Colors.white : c.textSecondary,
                     fontSize: 12, fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: Colors.white,
-                  side: BorderSide(color: isActive ? Colors.transparent : const Color(0xFFe2e8f0)),
+                  backgroundColor: c.surface,
+                  side: BorderSide(color: isActive ? Colors.transparent : c.border),
                 );
               },
             ),
@@ -68,12 +73,12 @@ class _TipsScreenState extends State<TipsScreen> {
         padding: const EdgeInsets.all(16),
         itemCount: filtered.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, i) => _buildTipCard(filtered[i], i),
+        itemBuilder: (_, i) => _buildTipCard(filtered[i], i, c, s),
       ),
     );
   }
 
-  Widget _buildTipCard(Map<String, dynamic> tip, int i) {
+  Widget _buildTipCard(Map<String, dynamic> tip, int i, AppColors c, AppStrings s) {
     final gradients = [
       [const Color(0xFFeff6ff), const Color(0xFFbfdbfe)],
       [const Color(0xFFfff7ed), const Color(0xFFfed7aa)],
@@ -107,8 +112,8 @@ class _TipsScreenState extends State<TipsScreen> {
                 children: [
                   Row(children: [
                     Expanded(
-                      child: Text(tip['title'] as String,
-                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: Color(0xFF1e293b))),
+                      child: Text(s.tipTitle(tip['title'] as String),
+                          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: c.textPrimary)),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -116,13 +121,13 @@ class _TipsScreenState extends State<TipsScreen> {
                         color: const Color(0xFFdbeafe),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(tip['tag'] as String,
+                      child: Text(s.tagLabel(tip['tag'] as String),
                           style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF1d4ed8))),
                     ),
                   ]),
                   const SizedBox(height: 6),
-                  Text(tip['body'] as String,
-                      style: const TextStyle(fontSize: 13, color: Color(0xFF475569), height: 1.5)),
+                  Text(s.tipBody(tip['title'] as String),
+                      style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.5)),
                 ],
               ),
             ),

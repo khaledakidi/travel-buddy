@@ -4,6 +4,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../app_state.dart';
 import '../data/model/place.dart';
+import '../theme.dart';
+import '../strings.dart';
 
 class PlaceDetailSheet extends StatelessWidget {
   final Place place;
@@ -12,8 +14,11 @@ class PlaceDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state   = context.watch<AppState>();
+    final c = AppColors.of(state.darkMode);
+    final s = AppStrings(state.language);
     final saved   = state.isSaved(place.id);
     final visited = state.isVisited(place.id);
+    final isFree  = place.price == 'Free';
 
     return DraggableScrollableSheet(
       expand: false,
@@ -21,9 +26,9 @@ class PlaceDetailSheet extends StatelessWidget {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       builder: (_, scrollCtrl) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: ListView(
           controller: scrollCtrl,
@@ -35,7 +40,7 @@ class PlaceDetailSheet extends StatelessWidget {
                 margin: const EdgeInsets.only(top: 12, bottom: 4),
                 width: 40, height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: c.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -63,24 +68,20 @@ class PlaceDetailSheet extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(place.name,
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF1e293b))),
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.textPrimary)),
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: place.price == 'Free'
-                              ? const Color(0xFFdcfce7)
-                              : const Color(0xFFF1F5F9),
+                          color: isFree ? const Color(0xFFdcfce7) : c.searchFill,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(place.price,
+                        child: Text(isFree ? s.priceFree : place.price,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: place.price == 'Free'
-                                  ? const Color(0xFF16a34a)
-                                  : const Color(0xFF64748b),
+                              color: isFree ? const Color(0xFF16a34a) : c.textSecondary,
                             )),
                       ),
                     ],
@@ -95,17 +96,17 @@ class PlaceDetailSheet extends StatelessWidget {
                     )),
                     const SizedBox(width: 6),
                     Text('${place.rating}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: c.textPrimary)),
                     Text(' (${(place.reviewCount / 1000).toStringAsFixed(1)}k)',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF94a3b8))),
+                        style: TextStyle(fontSize: 12, color: c.textMuted)),
                   ]),
                   const SizedBox(height: 14),
 
                   // Info chips
                   Row(children: [
-                    _chip(Icons.location_on_outlined, place.address.split(',').first),
+                    _chip(Icons.location_on_outlined, place.address.split(',').first, c),
                     const SizedBox(width: 8),
-                    _chip(Icons.access_time, place.hours),
+                    _chip(Icons.access_time, place.hours, c),
                   ]),
                   const SizedBox(height: 14),
 
@@ -125,8 +126,8 @@ class PlaceDetailSheet extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Student Advantage',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF065f46))),
+                              Text(s.studentAdvantage,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF065f46))),
                               Text(place.discountText ?? '',
                                   style: const TextStyle(fontSize: 12, color: Color(0xFF047857))),
                             ],
@@ -146,10 +147,10 @@ class PlaceDetailSheet extends StatelessWidget {
                         color: const Color(0xFFdcfce7),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Row(children: [
-                        Icon(Icons.check_circle, color: Color(0xFF16a34a), size: 18),
-                        SizedBox(width: 8),
-                        Text("You've visited this place!", style: TextStyle(color: Color(0xFF16a34a), fontWeight: FontWeight.w600)),
+                      child: Row(children: [
+                        const Icon(Icons.check_circle, color: Color(0xFF16a34a), size: 18),
+                        const SizedBox(width: 8),
+                        Text(s.visitedThisPlace, style: const TextStyle(color: Color(0xFF16a34a), fontWeight: FontWeight.w600)),
                       ]),
                     ),
 
@@ -162,16 +163,16 @@ class PlaceDetailSheet extends StatelessWidget {
                           await state.markVisited(place.id);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ Marked as visited! +10 XP'),
-                                backgroundColor: Color(0xFF16a34a),
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text(s.snackVisited),
+                                backgroundColor: const Color(0xFF16a34a),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }
                         },
                         icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Mark as Visited  +10 XP'),
+                        label: Text(s.markVisited),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF7c3aed),
                           foregroundColor: Colors.white,
@@ -191,12 +192,12 @@ class PlaceDetailSheet extends StatelessWidget {
                         onPressed: () {
                           state.toggleSave(place);
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(saved ? '📍 Removed from saved' : '❤️ Saved!'),
+                            content: Text(saved ? s.snackRemoved : s.snackSavedShort),
                             duration: const Duration(seconds: 1),
                           ));
                         },
                         icon: Icon(saved ? Icons.favorite : Icons.favorite_border),
-                        label: Text(saved ? 'Saved' : 'Save Place'),
+                        label: Text(saved ? s.savedLabel : s.savePlace),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: saved ? const Color(0xFFfef2f2) : const Color(0xFF2563eb),
                           foregroundColor: saved ? const Color(0xFFdc2626) : Colors.white,
@@ -213,15 +214,15 @@ class PlaceDetailSheet extends StatelessWidget {
                           await state.recordShare();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('📤 Shared! +5 XP'),
-                                duration: Duration(seconds: 1),
+                              SnackBar(
+                                content: Text(s.snackShared),
+                                duration: const Duration(seconds: 1),
                               ),
                             );
                           }
                         },
                         icon: const Icon(Icons.share),
-                        label: const Text('Share'),
+                        label: Text(s.share),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -237,7 +238,7 @@ class PlaceDetailSheet extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () => _openDirections(place),
                       icon: const Icon(Icons.directions),
-                      label: const Text('Get Directions'),
+                      label: Text(s.getDirections),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF16a34a),
                         foregroundColor: Colors.white,
@@ -256,17 +257,17 @@ class PlaceDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _chip(IconData icon, String label) {
+  Widget _chip(IconData icon, String label, AppColors c) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: c.searchFill,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(children: [
-        Icon(icon, size: 14, color: const Color(0xFF64748b)),
+        Icon(icon, size: 14, color: c.textSecondary),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary)),
       ]),
     );
   }

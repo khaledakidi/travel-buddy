@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../data/db/app_database.dart';
+import '../theme.dart';
+import '../strings.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -9,6 +11,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final c = AppColors.of(state.darkMode);
+    final s = AppStrings(state.language);
     final saved    = state.savedPlaces.length;
     final visited  = state.visitedCount;
     final sharedC  = state.shared;
@@ -19,8 +23,8 @@ class ProfileScreen extends StatelessWidget {
     final progress = xp / nextXP;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
-      appBar: AppBar(title: const Text('Profile'), backgroundColor: Colors.white, elevation: 0),
+      backgroundColor: c.scaffold,
+      appBar: AppBar(title: Text(s.profileTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -53,8 +57,8 @@ class ProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          const Text('Traveler',
-                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                          Text(s.traveler,
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
                           const SizedBox(width: 8),
                           if (streak > 0)
                             Container(
@@ -67,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                                   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                             ),
                         ]),
-                        Text('Istanbul · Level $level',
+                        Text(s.levelLabel(level),
                             style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
                         const SizedBox(height: 6),
                         // XP progress bar
@@ -90,9 +94,9 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 // Stats row
                 Row(children: [
-                  _statBox('$saved',   'Saved'),
-                  _statBox('$visited', 'Visited'),
-                  _statBox('$sharedC', 'Shared'),
+                  _statBox('$saved',   s.statSaved),
+                  _statBox('$visited', s.statVisited),
+                  _statBox('$sharedC', s.statShared),
                 ]),
               ],
             ),
@@ -100,33 +104,32 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Achievements ─────────────────────────────
-          _sectionLabel('ACHIEVEMENTS'),
+          _sectionLabel(s.achievements, c),
           const SizedBox(height: 8),
-          _buildBadges(state),
+          _buildBadges(state, s),
           const SizedBox(height: 16),
 
           // ── Preferences ──────────────────────────────
-          _sectionLabel('PREFERENCES'),
+          _sectionLabel(s.preferences, c),
           const SizedBox(height: 8),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 1,
             child: Column(children: [
               SwitchListTile(
                 value: state.studentMode,
                 onChanged: state.setStudentMode,
-                title: const Text('Student Mode', style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Show student discounts and budget options'),
+                title: Text(s.studentMode, style: TextStyle(fontWeight: FontWeight.w600, color: c.textPrimary)),
+                subtitle: Text(s.studentModeSub, style: TextStyle(color: c.textSecondary)),
                 secondary: const Icon(Icons.school_outlined, color: Color(0xFF16a34a)),
                 activeColor: const Color(0xFF2563eb),
               ),
-              const Divider(height: 0),
+              Divider(height: 0, color: c.border),
               SwitchListTile(
                 value: true,
                 onChanged: (_) {},
-                title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Get alerts for nearby deals'),
-                secondary: const Icon(Icons.notifications_outlined, color: Color(0xFF64748b)),
+                title: Text(s.notifications, style: TextStyle(fontWeight: FontWeight.w600, color: c.textPrimary)),
+                subtitle: Text(s.notificationsSub, style: TextStyle(color: c.textSecondary)),
+                secondary: Icon(Icons.notifications_outlined, color: c.textSecondary),
                 activeColor: const Color(0xFF2563eb),
               ),
             ]),
@@ -134,26 +137,35 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── General ───────────────────────────────────
-          _sectionLabel('GENERAL'),
+          _sectionLabel(s.general, c),
           const SizedBox(height: 8),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 1,
             child: Column(children: [
-              _settingRow(Icons.language_outlined, 'Language', 'English'),
-              const Divider(height: 0),
-              _settingRow(Icons.brightness_6_outlined, 'Appearance', 'Light'),
-              const Divider(height: 0),
-              _settingRow(Icons.star_outline, 'Rate App', ''),
-              const Divider(height: 0),
-              _settingRow(Icons.mail_outline, 'Contact Us', ''),
+              _settingRow(
+                Icons.language_outlined, s.language, s.languageVal, c,
+                onTap: () => state.toggleLanguage(),
+              ),
+              Divider(height: 0, color: c.border),
+              _settingRow(
+                Icons.brightness_6_outlined, s.appearance, s.appearanceVal(state.darkMode), c,
+                trailingWidget: Switch(
+                  value: state.darkMode,
+                  onChanged: state.setDarkMode,
+                  activeColor: const Color(0xFF2563eb),
+                ),
+              ),
+              Divider(height: 0, color: c.border),
+              _settingRow(Icons.star_outline, s.rateApp, '', c),
+              Divider(height: 0, color: c.border),
+              _settingRow(Icons.mail_outline, s.contactUs, '', c),
             ]),
           ),
           const SizedBox(height: 24),
 
-          const Center(
-            child: Text('Travel Buddy v1.0  ·  Made with ❤️',
-                style: TextStyle(fontSize: 12, color: Color(0xFF94a3b8))),
+          Center(
+            child: Text(s.version,
+                style: TextStyle(fontSize: 12, color: c.textMuted)),
           ),
           const SizedBox(height: 20),
         ],
@@ -179,13 +191,13 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionLabel(String text) {
+  Widget _sectionLabel(String text, AppColors c) {
     return Text(text,
-        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700,
-            color: Color(0xFF94a3b8), letterSpacing: 0.8));
+        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700,
+            color: c.textMuted, letterSpacing: 0.8));
   }
 
-  Widget _buildBadges(AppState state) {
+  Widget _buildBadges(AppState state, AppStrings s) {
     final badges = [
       {'label': 'First Visit',     'icon': '🏆', 'desc': 'Visit your first place',  'unlocked': state.hasFirstVisit,     'color': const Color(0xFFf59e0b)},
       {'label': '5 Saved',         'icon': '❤️',  'desc': 'Save 5 places',          'unlocked': state.hasFiveSaved,      'color': const Color(0xFF2563eb)},
@@ -202,7 +214,7 @@ class ProfileScreen extends StatelessWidget {
         final unlocked = b['unlocked'] as bool;
         final color    = b['color'] as Color;
         return Tooltip(
-          message: b['desc'] as String,
+          message: s.badgeDesc(b['desc'] as String),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -214,7 +226,7 @@ class ProfileScreen extends StatelessWidget {
               Text(b['icon'] as String,
                   style: TextStyle(fontSize: 16, color: unlocked ? null : const Color(0xFFcbd5e1))),
               const SizedBox(width: 6),
-              Text(b['label'] as String,
+              Text(s.badgeLabel(b['label'] as String),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -227,13 +239,20 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _settingRow(IconData icon, String label, String value) {
+  Widget _settingRow(IconData icon, String label, String value, AppColors c,
+      {VoidCallback? onTap, Widget? trailingWidget}) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF64748b), size: 22),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-      trailing: value.isNotEmpty
-          ? Text(value, style: const TextStyle(color: Color(0xFF94a3b8), fontSize: 13))
-          : const Icon(Icons.chevron_right, color: Color(0xFF94a3b8)),
+      onTap: onTap,
+      leading: Icon(icon, color: c.textSecondary, size: 22),
+      title: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: c.textPrimary)),
+      trailing: trailingWidget ??
+          (value.isNotEmpty
+              ? Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(value, style: TextStyle(color: c.textMuted, fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right, color: c.textMuted, size: 20),
+                ])
+              : Icon(Icons.chevron_right, color: c.textMuted)),
     );
   }
 }

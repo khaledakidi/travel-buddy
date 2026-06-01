@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../data/model/place.dart';
+import '../theme.dart';
+import '../strings.dart';
 import '../widgets/place_card.dart';
 import '../widgets/place_detail_sheet.dart';
 
@@ -118,17 +120,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final c = AppColors.of(state.darkMode);
+    final s = AppStrings(state.language);
     final filtered = state.filteredPlaces(demoPlaces);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: c.scaffold,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            _buildSearch(state),
-            _buildFilterChips(state),
-            _buildViewToggle(filtered.length),
+            _buildHeader(c, s, filtered.length),
+            _buildSearch(state, c, s),
+            _buildFilterChips(state, c, s),
+            _buildViewToggle(filtered.length, c, s),
             Expanded(child: _buildContent(filtered, state)),
           ],
         ),
@@ -136,55 +140,60 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppColors c, AppStrings s, int count) {
     return Container(
-      color: Colors.white,
+      color: c.surface,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1a2744),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
-              child: Text('TB', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-            ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset('assets/images/logo.png', width: 40, height: 40,
+                errorBuilder: (_, __, ___) => Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1a2744),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Center(
+                        child: Text('TB', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ),
+                    )),
           ),
           const SizedBox(width: 10),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Travel Buddy', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1a2744))),
-              Text('Istanbul · 16 places nearby', style: TextStyle(fontSize: 11, color: Color(0xFF64748b))),
+              Text('Travel Buddy', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: c.textPrimary)),
+              Text(s.placesNearby(count), style: TextStyle(fontSize: 11, color: c.textSecondary)),
             ],
           ),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {},
-            color: const Color(0xFF64748b),
+            color: c.textSecondary,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearch(AppState state) {
+  Widget _buildSearch(AppState state, AppColors c, AppStrings s) {
     return Container(
-      color: Colors.white,
+      color: c.surface,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: TextField(
         controller: _searchCtrl,
+        style: TextStyle(color: c.textPrimary),
         onChanged: (v) {
           state.setSearchQuery(v);
           _buildMarkers();
         },
         decoration: InputDecoration(
-          hintText: 'Search places, food, activities...',
-          hintStyle: const TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF94a3b8)),
+          hintText: s.searchHint,
+          hintStyle: TextStyle(color: c.textMuted, fontSize: 14),
+          prefixIcon: Icon(Icons.search, color: c.textMuted),
           suffixIcon: _searchCtrl.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, size: 18),
@@ -196,7 +205,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 )
               : null,
           filled: true,
-          fillColor: const Color(0xFFF1F5F9),
+          fillColor: c.searchFill,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -207,9 +216,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildFilterChips(AppState state) {
+  Widget _buildFilterChips(AppState state, AppColors c, AppStrings s) {
     return Container(
-      color: Colors.white,
+      color: c.surface,
       height: 46,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -220,7 +229,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           final cat = kCategories[i];
           final isSelected = state.activeFilter == cat['id'];
           return FilterChip(
-            label: Text('${cat['icon']} ${cat['label']}'),
+            label: Text('${cat['icon']} ${s.categoryLabel(cat['id']!)}'),
             selected: isSelected,
             onSelected: (_) {
               state.setFilter(cat['id']!);
@@ -229,11 +238,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
             selectedColor: const Color(0xFF1a2744),
             checkmarkColor: Colors.white,
             labelStyle: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF64748b),
+              color: isSelected ? Colors.white : c.textSecondary,
               fontSize: 12, fontWeight: FontWeight.w600,
             ),
-            backgroundColor: Colors.white,
-            side: BorderSide(color: isSelected ? Colors.transparent : const Color(0xFFe2e8f0)),
+            backgroundColor: c.surface,
+            side: BorderSide(color: isSelected ? Colors.transparent : c.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           );
         },
@@ -241,23 +250,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildViewToggle(int count) {
+  Widget _buildViewToggle(int count, AppColors c, AppStrings s) {
     return Container(
-      color: Colors.white,
+      color: c.surface,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
-          Text('$count place${count != 1 ? 's' : ''}',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF64748b), fontWeight: FontWeight.w600)),
+          Text(s.placeCount(count),
+              style: TextStyle(fontSize: 13, color: c.textSecondary, fontWeight: FontWeight.w600)),
           const Spacer(),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'map',  icon: Icon(Icons.map_outlined, size: 16),  label: Text('Map')),
-              ButtonSegment(value: 'grid', icon: Icon(Icons.grid_view, size: 16),      label: Text('Grid')),
-              ButtonSegment(value: 'list', icon: Icon(Icons.view_list, size: 16),      label: Text('List')),
+            segments: [
+              ButtonSegment(value: 'map',  icon: const Icon(Icons.map_outlined, size: 16),  label: Text(s.viewMap)),
+              ButtonSegment(value: 'grid', icon: const Icon(Icons.grid_view, size: 16),      label: Text(s.viewGrid)),
+              ButtonSegment(value: 'list', icon: const Icon(Icons.view_list, size: 16),      label: Text(s.viewList)),
             ],
             selected: {_viewMode},
-            onSelectionChanged: (s) => setState(() => _viewMode = s.first),
+            onSelectionChanged: (sel) => setState(() => _viewMode = sel.first),
             style: const ButtonStyle(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: VisualDensity.compact,

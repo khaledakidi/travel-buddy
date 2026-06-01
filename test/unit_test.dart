@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:travel_buddy/data/db/app_database.dart';
 import 'package:travel_buddy/data/model/place.dart';
+import 'package:travel_buddy/strings.dart';
 
 void main() {
   group('XP → Level (T15: Level up)', () {
@@ -83,6 +84,41 @@ void main() {
       expect(visited.id, p.id);
       expect(visited.isVisited, true);
       expect(p.isVisited, false); // original untouched
+    });
+  });
+
+  group('Localization (Language switching)', () {
+    const en = AppStrings('en');
+    const tr = AppStrings('tr');
+
+    test('Nav labels differ between English and Turkish', () {
+      expect(en.navExplore, 'Explore');
+      expect(tr.navExplore, 'Keşfet');
+      expect(en.navProfile, 'Profile');
+      expect(tr.navProfile, 'Profil');
+    });
+
+    test('Category labels translate but ids stay stable', () {
+      expect(en.categoryLabel('food'), 'Food');
+      expect(tr.categoryLabel('food'), 'Yemek');
+      expect(tr.categoryLabel('nature'), 'Doğa');
+    });
+
+    test('Tip titles and bodies have Turkish translations', () {
+      expect(tr.tipTitle('Get an Istanbulkart'), 'İstanbulkart Edinin');
+      expect(tr.tipBody('Get an Istanbulkart').isNotEmpty, true);
+      expect(tr.tipBody('Get an Istanbulkart') != en.tipBody('Get an Istanbulkart'), true);
+    });
+
+    test('Appearance label reflects dark/light state', () {
+      expect(en.appearanceVal(false), 'Light');
+      expect(en.appearanceVal(true), 'Dark');
+      expect(tr.appearanceVal(true), 'Koyu');
+    });
+
+    test('Unknown keys fall back to the English input', () {
+      expect(tr.categoryLabel('xyz'), 'xyz');
+      expect(tr.tipTitle('Nonexistent Tip'), 'Nonexistent Tip');
     });
   });
 }

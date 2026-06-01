@@ -58,22 +58,26 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
-                  ),
-                  child: const Center(
-                    child: Text('TB',
-                        style: TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 2,
-                        )),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 130, height: 130, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 110, height: 110,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
+                      ),
+                      child: const Center(
+                        child: Text('TB',
+                            style: TextStyle(
+                              fontSize: 44, fontWeight: FontWeight.w900,
+                              color: Colors.white, letterSpacing: 2,
+                            )),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

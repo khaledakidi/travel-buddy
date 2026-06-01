@@ -20,6 +20,14 @@ class AppState extends ChangeNotifier {
   bool _studentMode = true;
   bool get studentMode => _studentMode;
 
+  // Appearance (dark mode)
+  bool _darkMode = false;
+  bool get darkMode => _darkMode;
+
+  // Language ('en' or 'tr')
+  String _language = 'en';
+  String get language => _language;
+
   // User stats
   int _xp    = 0;
   int _level = 1;
@@ -77,6 +85,8 @@ class AppState extends ChangeNotifier {
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _studentMode = prefs.getBool('studentMode') ?? true;
+    _darkMode    = prefs.getBool('darkMode') ?? false;
+    _language    = prefs.getString('language') ?? 'en';
     notifyListeners();
   }
 
@@ -142,4 +152,22 @@ class AppState extends ChangeNotifier {
     await prefs.setBool('studentMode', value);
     notifyListeners();
   }
+
+  Future<void> setDarkMode(bool value) async {
+    _darkMode = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('darkMode', value);
+    notifyListeners();
+  }
+
+  Future<void> toggleDarkMode() => setDarkMode(!_darkMode);
+
+  Future<void> setLanguage(String lang) async {
+    _language = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', lang);
+    notifyListeners();
+  }
+
+  Future<void> toggleLanguage() => setLanguage(_language == 'en' ? 'tr' : 'en');
 }
